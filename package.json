@@ -1,0 +1,30 @@
+{
+  "name": "ptybooking",
+  "version": "1.0.0",
+  "description": "booking app",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cuplex/ptybooking.git"
+  },
+  "keywords": [
+    "booking"
+  ],
+  "author": "Jhon Vasquez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cuplex/ptybooking/issues"
+  },
+  "homepage": "https://github.com/cuplex/ptybooking#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  }
+}
