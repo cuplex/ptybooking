@@ -3,6 +3,8 @@ const bodyParser = require('body-parser')
 const graphqlHttp = require('express-graphql')
 const { buildSchema } = require('graphql')
 const { v4 } = require('uuid')
+const mongoose = require('mongoose')
+
 // import { v4 } from 'node-uuid'
 
 const app = express()
@@ -66,5 +68,13 @@ app.use('/graphql', graphqlHttp({
   graphiql: true
 
 }))
+const connectionString = `mongodb+srv://${
+  process.env.MONGO_USER}:${
+    process.env.MONGO_PASSWORD}@cluster0-ptvua.mongodb.net/test?retryWrites=true`
 
-app.listen(3000)
+mongoose.connect(connectionString
+).then(() => {
+  app.listen(3000)
+},(err) => {
+  console.log(err)
+})
