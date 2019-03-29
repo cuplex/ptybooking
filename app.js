@@ -2,16 +2,13 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const graphqlHttp = require('express-graphql')
 const { buildSchema } = require('graphql')
-const { v4 } = require('uuid')
 const mongoose = require('mongoose')
 
-// import { v4 } from 'node-uuid'
+const Event = require('./models/event')
 
 const app = express()
 
 app.use(bodyParser.json())
-
-const events = []
 
 app.use('/graphql', graphqlHttp({
   schema: buildSchema(`
@@ -47,30 +44,50 @@ app.use('/graphql', graphqlHttp({
 
   rootValue: {
     events: () => {
-     return events
+     return Event.find()
+     .then(events => {
+      //  console.log(events)
+       events.map(event => {
+         console.log(event)
+        //  TODO: still need to handle null error returned from MongoDB
+         return { ...event._doc, _id: event._doc._id.toString() }
+       })
+     })
+     .catch(error => {
+        console.log({error})
+        throw error
+     })
     },
+
     createEvent: (args) => {
-      const {eventInput} = args
-      const event = {
-        _id: v4(),
+      const { eventInput } = args
+
+      const event = new Event({
         title: eventInput.title,
         description: eventInput.description,
         price: +eventInput.price, // ensures to return a number
         date: eventInput.date
-      }
-      console.log(args)
-      events.push(event)
+      })
 
-      return event
+      return event.save()
+      .then(result => {
+          console.log(result)
+          return { ...result._doc }
+      })
+      .catch(error => {
+        console.log(error)
+        throw new Error('Error ocurred while saving event')
+      })
     }
   },
 
   graphiql: true
 
 }))
+
 const connectionString = `mongodb+srv://${
   process.env.MONGO_USER}:${
-    process.env.MONGO_PASSWORD}@cluster0-ptvua.mongodb.net/test?retryWrites=true`
+    process.env.MONGO_PASSWORD}@cluster0-ptvua.mongodb.net/${process.env.MONGO_DB}?retryWrites=true`
 
 mongoose.connect(connectionString
 ).then(() => {

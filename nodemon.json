@@ -1,6 +1,7 @@
 {
   "env": {
     "MONGO_USER": "rw_user",
-    "MONGO_PASSWORD": "vNufIsL279QaLM4Z"
+    "MONGO_PASSWORD": "vNufIsL279QaLM4Z",
+    "MONGO_DB": "boooking_db"
   }
 }
