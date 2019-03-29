@@ -46,11 +46,10 @@ app.use('/graphql', graphqlHttp({
     events: () => {
      return Event.find()
      .then(events => {
-      //  console.log(events)
-       events.map(event => {
-         console.log(event)
-        //  TODO: still need to handle null error returned from MongoDB
-         return { ...event._doc, _id: event._doc._id.toString() }
+       console.log(events)
+       return events.map(event => {
+        //  special id getter from MongoDB
+         return { ...event._doc, _id: event.id }
        })
      })
      .catch(error => {
@@ -71,8 +70,8 @@ app.use('/graphql', graphqlHttp({
 
       return event.save()
       .then(result => {
-          console.log(result)
-          return { ...result._doc }
+        // _id: event._doc._id.toString() handles the id object from MongoDB
+        return { ...result._doc, _id: event._doc._id.toString() }
       })
       .catch(error => {
         console.log(error)
