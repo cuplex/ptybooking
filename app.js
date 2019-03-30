@@ -3,8 +3,10 @@ const bodyParser = require('body-parser')
 const graphqlHttp = require('express-graphql')
 const { buildSchema } = require('graphql')
 const mongoose = require('mongoose')
+const bcryptjs = require('bcryptjs')
 
 const Event = require('./models/event')
+const User = require('./models/user')
 
 const app = express()
 
@@ -21,6 +23,12 @@ app.use('/graphql', graphqlHttp({
       date: String!
     }
 
+    type User {
+      _id: ID!
+      email: String!
+      password: String
+    }
+
     input EventInput {
       title: String!
       description: String!
@@ -28,12 +36,19 @@ app.use('/graphql', graphqlHttp({
       date: String!
     }
 
+    input UserInput {
+      email: String!
+      password: String!
+    }
+
     type RootQuery {
       events: [Event!]!
+      users: [User!]!
     }
 
     type RootMutation {
       createEvent(eventInput: EventInput): Event
+      createUser(userInput: UserInput): User
     }
 
     schema {
@@ -46,7 +61,6 @@ app.use('/graphql', graphqlHttp({
     events: () => {
      return Event.find()
      .then(events => {
-       console.log(events)
        return events.map(event => {
         //  special id getter from MongoDB
          return { ...event._doc, _id: event.id }
@@ -60,23 +74,62 @@ app.use('/graphql', graphqlHttp({
 
     createEvent: (args) => {
       const { eventInput } = args
-
+      let createdEvent
       const event = new Event({
         title: eventInput.title,
         description: eventInput.description,
         price: +eventInput.price, // ensures to return a number
-        date: eventInput.date
+        date: eventInput.date,
+        creator: '5c9e5765afa55618865c2ec4',
       })
 
       return event.save()
-      .then(result => {
-        // _id: event._doc._id.toString() handles the id object from MongoDB
-        return { ...result._doc, _id: event._doc._id.toString() }
-      })
-      .catch(error => {
-        console.log(error)
-        throw new Error('Error ocurred while saving event')
-      })
+        .then(result => {
+          // _id: event._doc._id.toString() handles the id object from MongoDB
+          createdEvent = { ...result._doc, _id: event._doc._id.toString() }
+          return User.findById('5c9e5765afa55618865c2ec4')
+        })
+        .then(user => {
+          if (!user) {
+            throw new Error('Users does not exist')
+          }
+          user.createdEvents.push(event)
+          return user.save()
+        })
+        .then(result => {
+          console.log({result})
+          return createdEvent
+        })
+        .catch(error => {
+          console.log(error)
+          throw error
+        })
+    },
+
+    createUser: args => {
+      const { userInput } = args
+
+      return User.findOne({ email: userInput.email })
+        .then(user => {
+          if (user) {
+            throw new Error('user already exist')
+          }
+          return bcryptjs.hash(userInput.password, 12)
+        })
+        .then(hashedPassword => {
+          const user = new User({
+            email: userInput.email,
+            password: hashedPassword
+          })
+          return user.save()
+        })
+        .then(result => {
+          return { ...result._doc, _id: result.id, password: null }
+        })
+        .catch(error => {
+          console.log(error)
+          throw error
+        })
     }
   },
 
