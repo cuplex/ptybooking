@@ -4,29 +4,29 @@ module.exports = (req, res, next) => {
   const authHeader = req.get('Authorization')
 
   if (!authHeader) {
-    req.isAuthenicated = false
+    req.isAuth = false
     return next()
   }
 
   const token = authHeader.split(' ')[1]
   if (!token || token === '') {
-    req.isAuthenicated = false
+    req.isAuth = false
     return next()
   }
 
   let decodedToken
   try {
-    decodedToken = jwt.decode(token, 'mysupersecretkey')
+    decodedToken = jwt.verify(token, 'mysupersecretkey')
   } catch (error) {
-    req.isAuthenicated = false
+    req.isAuth = false
     return next()
   }
 
   if (!decodedToken) {
-    req.isAuthenicated = false
+    req.isAuth = false
     return next()
   }
-  req.isAuthenicated = true
+  req.isAuth = true
   req.userId = decodedToken.userId
   next()
 }
