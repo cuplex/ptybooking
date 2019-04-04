@@ -31,14 +31,14 @@ module.exports = {
       description: eventInput.description,
       price: +eventInput.price, // ensures to return a number
       date: eventInput.date,
-      creator: '5c9e5765afa55618865c2ec4',
+      creator: req.userId,
     })
 
     return event.save()
       .then(result => {
         // _id: event._doc._id.toString() handles the id object from MongoDB
         createdEvent = transformEvent(result)
-        return User.findById('5c9e5765afa55618865c2ec4')
+        return User.findById(req.userId)
       })
       .then(user => {
         if (!user) {
